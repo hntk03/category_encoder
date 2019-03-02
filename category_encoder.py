@@ -41,24 +41,6 @@ from sklearn.preprocessing import LabelEncoder
 class CategoryEncoder:
     
         
-    
-    def __init__(self, train_df, test_df, id_column, target_column):
-        
-        self.__train_df = train_df
-        self.__test_df = test_df
-        self.__category_columns = []
-        self.__numeric_columns = []
-        self.__columns = train_df.columns.values
-        self.__train_shape = train_df.shape
-        self.__test_shape = test_df.shape
-        self.__dtypes = train_df.dtypes
-        self.__id_column = id_column
-        self.__target_column = target_column
-        columns = list(np.copy(self.__columns))
-        columns.remove(id_column)
-        columns.remove(target_column)
-        self.__feats = columns
-        
     def columns_type(self):
         
         feats = self.__feats
@@ -79,6 +61,25 @@ class CategoryEncoder:
         self.__category_columns = category_columns
         self.__numeric_columns = numeric_columns
         self.__feats = feats
+    
+    def __init__(self, train_df, test_df, id_column, target_column):
+        
+        self.__train_df = train_df
+        self.__test_df = test_df
+        self.__category_columns = []
+        self.__numeric_columns = []
+        self.__columns = train_df.columns.values
+        self.__train_shape = train_df.shape
+        self.__test_shape = test_df.shape
+        self.__dtypes = train_df.dtypes
+        self.__id_column = id_column
+        self.__target_column = target_column
+        columns = list(np.copy(self.__columns))
+        columns.remove(id_column)
+        columns.remove(target_column)
+        self.__feats = columns
+        self.columns_type()
+        
     
     def get_columns_type(self):
         
