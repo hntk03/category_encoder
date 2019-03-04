@@ -70,6 +70,7 @@ class CategoryEncoder:
         self.__test_df = test_df
         self.__category_columns = []
         self.__numeric_columns = []
+        self.__LE_columns = []
         self.__columns = train_df.columns.values
         self.__train_shape = train_df.shape
         self.__test_shape = test_df.shape
@@ -122,6 +123,7 @@ class CategoryEncoder:
     def __encoder(self, col):
         
         feats = []
+        LE_columns = []
         train_shape = self.__train_shape
         test_shape = self.__test_shape
         
@@ -158,6 +160,7 @@ class CategoryEncoder:
         train_df[col_LE] = _train_le
         test_df[col_LE] = _test_le
         feats.append(col_LE)
+        LE_columns.append(col_LE)
         
         col_LE_log = col_LE + '_log'
         train_df[col_LE_log] = np.log(_train_le+1)
@@ -199,16 +202,16 @@ class CategoryEncoder:
         test_df[col_LCE] = _test_lce
         feats.append(col_LCE)
         
-        return train_df, test_df, feats
+        return train_df, test_df, feats, LE_columns
 
     
     def encoding(self, mycategory_columns=None, n_jobs=-1):
         
-        logger = self.__logger
         
         feats = self.__feats
         train_shape = self.__train_shape
         test_shape = self.__test_shape
+        LE_columns = self.__LE_columns
         
         if mycategory_columns == None:
             category_columns = self.__category_columns
@@ -235,11 +238,14 @@ class CategoryEncoder:
             train_df = pd.concat([train_df, r[0]], axis=1)
             test_df = pd.concat([train_df, r[1]], axis=1)
             feats.extend(r[2])
+            LE_columns.extend(r[3])
             
             
         self.__train_df = train_df
         self.__test_df = test_df
         self.__feats = feats
+        self.__LE_columns = LE_columns
+        
                 
         self.__drop_columns(category_columns)
         
@@ -252,6 +258,7 @@ class CategoryEncoder:
         feats = self.__feats
         
         return train_df, test_df, feats
+
         
             
                 
