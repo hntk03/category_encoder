@@ -236,7 +236,7 @@ class CategoryEncoder:
         for iter, r in enumerate(result):
             
             train_df = pd.concat([train_df, r[0]], axis=1)
-            test_df = pd.concat([train_df, r[1]], axis=1)
+            test_df = pd.concat([test_df, r[1]], axis=1)
             feats.extend(r[2])
             LE_columns.extend(r[3])
             
@@ -248,6 +248,98 @@ class CategoryEncoder:
         
                 
         self.__drop_columns(category_columns)
+    
+    def target_encoding(self, folds, n_jobs=-1, verbose=3):
+        
+        LE_columns = self.__LE_columns
+        self.__folds = folds
+        train_df = self.__train_df
+        test_df = self.__test_df
+        feats = self.__feats
+        
+        encoder = self.__target_encoder
+        result = (Parallel(n_jobs=n_jobs, verbose=3)([delayed(encoder)(x) for x in LE_columns]))
+        
+        for iter, r in enumerate(result):
+            
+            train_df = pd.concat([train_df, r[0]], axis=1)
+            test_df = pd.concat([test_df, r[1]], axis=1)
+            feats.extend(r[2])
+            
+            
+        self.__train_df = train_df
+        self.__test_df = test_df
+        self.__feats = feats
+        
+        
+    def __target_encoder(self, col):
+        
+        feats = []
+        train_df = self.__train_df
+        test_df = self.__test_df
+        folds = self.__folds
+        target_column = self.__target_column
+        train_shape = self.__train_shape
+        test_shape = self.__test_shape
+        
+        
+        _train_te_mean = np.zeros(train_shape[0], dtype=float)
+        _test_te_mean = np.zeros(test_shape[0], dtype=float)
+        
+        _train_te_std = np.zeros(train_shape[0], dtype=float)
+        _test_te_std = np.zeros(test_shape[0], dtype=float)
+        
+        te_train_df = pd.DataFrame()
+        te_test_df = pd.DataFrame()
+        
+        train_values = train_df[col].values
+        test_values = test_df[col].values
+        
+        for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df, train_df[target_column])):
+            
+            train_x = train_df.iloc[train_idx]
+            valid_x = train_df.iloc[valid_idx]
+            
+            value_counts_mean = train_x.groupby(col)[target_column].mean()
+            value_counts_std = train_x.groupby(col)[target_column].std()
+            _index_set = set(value_counts_mean.index.values)
+            
+            for index in valid_idx:
+                value = train_values[index]
+                if set([value]) <= _index_set:
+                    _train_te_mean[index] = value_counts_mean[value]
+                    _train_te_std[index] = value_counts_std[value]
+                else:
+                    _train_te_mean[index] = 0.5
+                    _train_te_std[index] = 0
+                    
+        
+        col_te_mean = col[:-3] + '_TE_mean'
+        col_te_std = col[:-3] + '_TE_std'
+        te_train_df[col_te_mean] = _train_te_mean
+        feats.append(col_te_mean)
+        te_train_df[col_te_std] = _train_te_std
+        feats.append(col_te_std)
+        
+        value_counts_mean = train_df.groupby(col)[target_column].mean()
+        value_counts_std = train_df.groupby(col)[target_column].std()
+        _index_set = set(value_counts_mean.index.values)
+        
+
+        for iter, value in enumerate(test_values) :
+            if set([value]) <= _index_set:
+                _test_te_mean[iter] = value_counts_mean[value]
+                _test_te_std[iter] = value_counts_std[value]
+            else:
+                _test_te_mean[iter] = 0.5
+                _test_te_std[iter] = 0
+
+        te_test_df[col_te_mean] = _test_te_mean
+        te_test_df[col_te_std] = _test_te_std
+        
+        return te_train_df, te_test_df, feats
+
+    
         
         
         
