@@ -222,6 +222,10 @@ class CategoryEncoder:
         
         train_df = self.__train_df
         test_df = self.__test_df
+        
+        
+        train_df = self.__reduce_mem_usage(train_df)
+        test_df = self.__reduce_mem_usage(test_df)
             
             
         _train_ce = np.zeros(train_shape[0], dtype=int)
@@ -239,6 +243,10 @@ class CategoryEncoder:
             test_df = pd.concat([test_df, r[1]], axis=1)
             feats.extend(r[2])
             LE_columns.extend(r[3])
+            
+            
+        train_df = self.__reduce_mem_usage(train_df)
+        test_df = self.__reduce_mem_usage(test_df)
             
             
         self.__train_df = train_df
