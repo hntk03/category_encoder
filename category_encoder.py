@@ -137,6 +137,9 @@ class CategoryEncoder:
         _train_ce_log = np.zeros(train_shape[0], dtype=int)
         _test_ce_log = np.zeros(test_shape[0], dtype=int)
         
+        _train_fe = np.zeros(train_shape[0], dtype=float)
+        _test_fe = np.zeros(test_shape[0], dtype=float)
+        
         train_df = pd.DataFrame()
         test_df = pd.DataFrame()
         
@@ -160,6 +163,11 @@ class CategoryEncoder:
         train_df[col_LE_log] = np.log(_train_le+1)
         test_df[col_LE_log] = np.log(_test_le+1)
         feats.append(col_LE_log)
+        
+        col_FE = col + '_FE'
+        train_df[col_FE] = _train_le/train_shape[0]
+        test_df[col_FE] = _test_le/test_shape[0]
+        feats.append(col_FE)
 
         # Count Encoding and Label Count Encoding
         value_counts = train_df[col_LE].value_counts()
