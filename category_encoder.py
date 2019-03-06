@@ -175,7 +175,8 @@ class CategoryEncoder:
         # Count Encoding and Label Count Encoding
         value_counts = train_df[col_LE].value_counts()
         _index = value_counts.index.values
-        rank = pd.Series(np.arange(_index.shape[0], 0, -1), index=_index)
+        value_counts = value_counts.to_dict()
+        rank = pd.Series(np.arange(_index.shape[0], 0, -1), index=_index).to_dict()
 
         #train
         for iter, value in enumerate(_train_le):
@@ -312,8 +313,9 @@ class CategoryEncoder:
             valid_x = train_df.iloc[valid_idx]
             
             value_counts_mean = train_x.groupby(col)[target_column].mean()
-            value_counts_std = train_x.groupby(col)[target_column].std()
+            value_counts_std = train_x.groupby(col)[target_column].std().to_dict()
             _index_set = set(value_counts_mean.index.values)
+            value_counts_mean = value_counts_mean.to_dict()
             
             for index in valid_idx:
                 value = train_values[index]
@@ -333,8 +335,9 @@ class CategoryEncoder:
         feats.append(col_te_std)
         
         value_counts_mean = train_df.groupby(col)[target_column].mean()
-        value_counts_std = train_df.groupby(col)[target_column].std()
+        value_counts_std = train_df.groupby(col)[target_column].std().to_dict()
         _index_set = set(value_counts_mean.index.values)
+        value_counts_mean = value_counts_mean.to_dict()
         
 
         for iter, value in enumerate(test_values) :
